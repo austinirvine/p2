@@ -9,7 +9,7 @@
 
 /**
   Initializes the priqueue_t data structure.
-  
+
   Assumtions
     - You may assume this function will only be called once per instance of priqueue_t
     - You may assume this function will be the first function called using an instance of priqueue_t.
@@ -19,7 +19,8 @@
  */
 void priqueue_init(priqueue_t *q, int(*comparer)(const void *, const void *))
 {
-
+	q->front = NULL;
+	q->cmp = comparer;
 }
 
 
@@ -32,42 +33,68 @@ void priqueue_init(priqueue_t *q, int(*comparer)(const void *, const void *))
  */
 int priqueue_offer(priqueue_t *q, void *ptr)
 {
-	return -1;
+	int retv = 0;
+	if (q->front == NULL){
+		q->front = ptr;
+	} else {
+		retv = 1;
+		void * n = q->front;
+		while(n->next != NULL) {
+			n = n->next;
+			retv++;
+		}
+		n->next = ptr;
+	}
+	return retv;
 }
 
 
 /**
   Retrieves, but does not remove, the head of this queue, returning NULL if
   this queue is empty.
- 
+
   @param q a pointer to an instance of the priqueue_t data structure
   @return pointer to element at the head of the queue
   @return NULL if the queue is empty
  */
 void *priqueue_peek(priqueue_t *q)
 {
-	return NULL;
+	void * retv;
+	if (q->front == NULL) {
+		retv = NULL;
+	} else {
+		retv = q->front;
+	}
+	return retv;
 }
 
 
 /**
   Retrieves and removes the head of this queue, or NULL if this queue
   is empty.
- 
+
   @param q a pointer to an instance of the priqueue_t data structure
   @return the head of this queue
   @return NULL if this queue is empty
  */
 void *priqueue_poll(priqueue_t *q)
 {
-	return NULL;
+	void * retv;
+	if (q->front == NULL) {
+		retv = NULL;
+	} else {
+		retv = q->front;
+		q->front = retv->next;
+		retv->next = NULL;
+	}
+	return retv;
 }
 
 
 /**
   Returns the element at the specified position in this list, or NULL if
   the queue does not contain an index'th element.
- 
+
   @param q a pointer to an instance of the priqueue_t data structure
   @param index position of retrieved element
   @return the index'th element in the queue
@@ -80,10 +107,10 @@ void *priqueue_at(priqueue_t *q, int index)
 
 
 /**
-  Removes all instances of ptr from the queue. 
-  
+  Removes all instances of ptr from the queue.
+
   This function should not use the comparer function, but check if the data contained in each element of the queue is equal (==) to ptr.
- 
+
   @param q a pointer to an instance of the priqueue_t data structure
   @param ptr address of element to be removed
   @return the number of entries removed
@@ -97,7 +124,7 @@ int priqueue_remove(priqueue_t *q, void *ptr)
 /**
   Removes the specified index from the queue, moving later elements up
   a spot in the queue to fill the gap.
- 
+
   @param q a pointer to an instance of the priqueue_t data structure
   @param index position of element to be removed
   @return the element removed from the queue
@@ -111,7 +138,7 @@ void *priqueue_remove_at(priqueue_t *q, int index)
 
 /**
   Returns the number of elements in the queue.
- 
+
   @param q a pointer to an instance of the priqueue_t data structure
   @return the number of elements in the queue
  */
@@ -123,7 +150,7 @@ int priqueue_size(priqueue_t *q)
 
 /**
   Destroys and frees all the memory associated with q.
-  
+
   @param q a pointer to an instance of the priqueue_t data structure
  */
 void priqueue_destroy(priqueue_t *q)
