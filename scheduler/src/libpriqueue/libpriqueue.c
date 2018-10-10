@@ -141,8 +141,8 @@ int priqueue_remove(priqueue_t *q, void *ptr)
 	} else {
 		node cur_node = q->front;
 		node pre_node = q->front;
-		while (cur_node->next != NULL) {
-			if(pre_node->data == ptr) {
+		while (cur_node != NULL) {
+			if(cur_node->data == ptr) {
 				pre_node->next = cur_node->next;
 				cur_node->next = NULL;
 				free(cur_node);
@@ -151,14 +151,6 @@ int priqueue_remove(priqueue_t *q, void *ptr)
 			}
 			pre_node = cur_node;
 			cur_node = cur_node->next;
-		}
-
-		if(prev_node->data == ptr) {
-			pre_node->next = cur_node->next;
-			cur_node->next = NULL;
-			free(cur_node);
-			cur_node = pre_node->next;
-			retv += 1;
 		}
 	}
 	return retv;
@@ -185,17 +177,14 @@ void *priqueue_remove_at(priqueue_t *q, int index)
 		retv = q->front;
 	} else {
 		node cur_node = q->front;
-		node nex_node = q->front;
-		while (cur_node->next != NULL) {
-			position += 1;
-			if(index == position) {
-				nex_node = cur_node->next;
-				retv = nex_node->data;
-				cur_node->next = nex_node->next;
-				free(nex_node);
-			}
+		node pre_node = q->front;
+		for (int i = 0; i < index; i++){
+			pre_node = cur_node;
 			cur_node = cur_node->next;
 		}
+		pre_node->next = cur_node->next;
+		cur_node->next = NULL:
+		free(cur_node);
 	}
 	return retv;
 }

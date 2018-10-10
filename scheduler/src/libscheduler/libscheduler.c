@@ -14,8 +14,14 @@
 
   You may need to define some global variables or a struct to store your job queue elements.
 */
+/*typedef struct _job_elements
+{
+
+}*/
+
 typedef struct _job_t
 {
+	//void * data;
 
 } job_t;
 
