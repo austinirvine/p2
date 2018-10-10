@@ -105,7 +105,7 @@ void *priqueue_poll(priqueue_t *q)
  */
 void *priqueue_at(priqueue_t *q, int index)
 {
-	void * retv;
+	node * retv;
 	if (q->front == NULL || index > priqueue_size(q)){
 		retv = NULL;
 	} else {
@@ -168,8 +168,7 @@ int priqueue_remove(priqueue_t *q, void *ptr)
  */
 void *priqueue_remove_at(priqueue_t *q, int index)
 {
-	void * retv;
-	int position;
+	node * retv;
 	if(q->front == NULL || index > priqueue_size(q))
 	{
 		retv = NULL;
@@ -183,7 +182,7 @@ void *priqueue_remove_at(priqueue_t *q, int index)
 			cur_node = cur_node->next;
 		}
 		pre_node->next = cur_node->next;
-		cur_node->next = NULL:
+		cur_node->next = NULL;
 		free(cur_node);
 	}
 	return retv;
@@ -220,11 +219,9 @@ int priqueue_size(priqueue_t *q)
  */
 void priqueue_destroy(priqueue_t *q)
 {
-	int retv;
 	if(priqueue_size(q) != 0) {
 		node * cur_node = q->front;
 		node * pre_node = q->front;
-		retv = 1;
 		while(cur_node != NULL) {
 			cur_node = cur_node->next;
 			free(pre_node);
