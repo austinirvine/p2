@@ -33,7 +33,7 @@ void priqueue_init(priqueue_t *q, int(*comparer)(const void *, const void *))
  */
 int priqueue_offer(priqueue_t *q, void *ptr)
 {
-	node a;
+	node * a;
 	a->data = ptr;
 	a->next = NULL;
 	int retv = 0;
@@ -41,7 +41,7 @@ int priqueue_offer(priqueue_t *q, void *ptr)
 		q->front = a;
 	} else {
 		retv = 1;
-		node n = q->front;
+		node * n = (node *)q->front;
 		while(n->next != NULL) {
 			n = n->next;
 			retv++;
@@ -82,7 +82,7 @@ void *priqueue_peek(priqueue_t *q)
  */
 void *priqueue_poll(priqueue_t *q)
 {
-	void * retv;
+	node * retv;
 	if (q->front == NULL) {
 		retv = NULL;
 	} else {
@@ -109,7 +109,7 @@ void *priqueue_at(priqueue_t *q, int index)
 	if (q->front == NULL || index > priqueue_size(q)){
 		retv = NULL;
 	} else {
-		node n = q->front;
+		node * n = q->front;
 		int i = 0;
 		while(i != index) {
 			n = n->next;
@@ -139,8 +139,8 @@ int priqueue_remove(priqueue_t *q, void *ptr)
 	} else if (q->front->next == NULL && q->front == ptr){
 		retv = 1;
 	} else {
-		node cur_node = q->front;
-		node pre_node = q->front;
+		node * cur_node = q->front;
+		node * pre_node = q->front;
 		while (cur_node != NULL) {
 			if(cur_node->data == ptr) {
 				pre_node->next = cur_node->next;
@@ -176,8 +176,8 @@ void *priqueue_remove_at(priqueue_t *q, int index)
 	} else if (q->front->next == NULL && index == 0){
 		retv = q->front;
 	} else {
-		node cur_node = q->front;
-		node pre_node = q->front;
+		node * cur_node = q->front;
+		node * pre_node = q->front;
 		for (int i = 0; i < index; i++){
 			pre_node = cur_node;
 			cur_node = cur_node->next;
@@ -202,7 +202,7 @@ int priqueue_size(priqueue_t *q)
 	if(q->front == NULL) {
 		retv = 0;
 	} else {
-		node cur_node = q->front;
+		node * cur_node = q->front;
 		retv = 1;
 		while(cur_node->next != NULL) {
 			cur_node = cur_node->next;
@@ -220,9 +220,10 @@ int priqueue_size(priqueue_t *q)
  */
 void priqueue_destroy(priqueue_t *q)
 {
+	int retv;
 	if(priqueue_size(q) != 0) {
-		node cur_node = q->front;
-		node pre_node = q->front;
+		node * cur_node = q->front;
+		node * pre_node = q->front;
 		retv = 1;
 		while(cur_node != NULL) {
 			cur_node = cur_node->next;
