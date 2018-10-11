@@ -7,7 +7,7 @@
 /**
   Priqueue Data Structure
 */
-typedef (void *) (* comparer)(const void *a, const void *b);
+typedef void* (*comparer)(const void *a, const void *b);
 
 typedef struct node {
   void * data;

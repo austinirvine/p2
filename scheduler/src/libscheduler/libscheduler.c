@@ -14,12 +14,9 @@
 
   You may need to define some global variables or a struct to store your job queue elements.
 */
-void * FCFS(void * job1, void * job2);
-void * SJF(void * job1, void * job2);
-void * PSJF(void * job1, void * job2);
-void * PRI(void * job1, void * job2);
-void * PPRI(void * job1, void * job2);
-void * RR(void * job1, void * job2);
+void * FCFS_cmp(void * job1, void * job2);
+void * SJF_cmp(void * job1, void * job2);
+void * PRI_cmp(void * job1, void * job2);
 
 typedef struct core{
 	priqueue_t q;
@@ -84,27 +81,27 @@ comparer determine_cmp(scheme_t scheme)
 	comparer cmp;
 	switch (scheme):
 		case FCFS:
-			cmp = &FCFS;
+			cmp = &FCFS_cmp;
 			preemptive = false;
 			break;
 		case RR:
-			cmp = &FCFS;
+			cmp = &FCFS_cmp;
 			preemptive = true;
 			break;
 		case SJF:
-			cmp = &SJF;
+			cmp = &SJF_cmp;
 			preemptive = false;
 			break;
 		case PSJF:
-			cmp = &SJF;
+			cmp = &SJF_cmp;
 			preemptive = true;
 			break;
 		case PRI:
-			cmp = &PRI;
+			cmp = &PRI_cmp;
 			preemptive = false;
 			break;
 		case PPRI:
-			cmp = &PRI;
+			cmp = &PRI_cmp;
 			preemptive = true;
 			break;
 }
@@ -300,19 +297,19 @@ void scheduler_show_queue()
 }
 
 
-void * FCFS(void * a, void * b){
+void * FCFS_cmp(void * a, void * b){
 	job_t * job_a = (job_t *)a;
 	job_t * job_b = (job_t *)b;
 	return (job_a->arrival_time < job_b->arrival_time) ? a : b;
 }
 
-void * SJF(void * a, void * b){
+void * SJF_cmp(void * a, void * b){
 	job_t * job_a = (job_t *)a;
 	job_t * job_b = (job_t *)b;
 	return (job_a->r_time < job_b->r_time) ? a : b;
 }
 
-void * PRI(void * a, void * b){
+void * PRI_cmp(void * a, void * b){
 	job_t * job_a = (job_t *)a;
 	job_t * job_b = (job_t *)b;
 	return (job_a->priority < job_b->priority) ? a : b;
