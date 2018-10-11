@@ -17,7 +17,7 @@
   @param comparer a function pointer that compares two elements.
   See also @ref comparer-page
  */
-void priqueue_init(priqueue_t *q, int(*comparer)(const void *, const void *))
+void priqueue_init(priqueue_t *q, (void *)(*comparer)(const void *, const void *))
 {
 	q->front = NULL;
 	q->cmp = comparer;
@@ -37,20 +37,38 @@ int priqueue_offer(priqueue_t *q, void *ptr)
 	a->data = ptr;
 	a->next = NULL;
 	int retv = 0;
+	// if its the first job, make it front
 	if (q->front == NULL){
 		q->front = a;
 	} else {
 		retv = 1;
-		node * n = (node *)q->front;
-		while(n->next != NULL) {
-			n = n->next;
+		node * cur_node = (node *)q->front;
+		node * pre_node = (node *)q->front;
+		while(cur_node != NULL) {
+			// If we get back the first point, we know that a needs to be before cur_node
+			if((q->cmp)(a->data, cur_node->data) == a->data){
+				// If its the first node, we need a special case
+				if (cur_node == q->front){
+					q->front = a;
+					a->next = cur_node;
+				} else {
+					pre_node->next = a;
+					a->next = cur_node;
+				}
+				break;
+			}
+			// iterate the nodes
+			pre_node = cur_node;
+			cur_node = cur_node->next;
 			retv++;
 		}
-		n->next = a;
+		// cmp never returned a, so were at the end of the queue and need to have a special case
+		if (cur_node == NULL){
+			pre_node->next = a;
+		}
 	}
 	return retv;
 }
-
 
 /**
   Retrieves, but does not remove, the head of this queue, returning NULL if
