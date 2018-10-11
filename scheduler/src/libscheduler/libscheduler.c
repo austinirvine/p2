@@ -18,9 +18,11 @@ void * FCFS_cmp(void * job1, void * job2);
 void * SJF_cmp(void * job1, void * job2);
 void * PRI_cmp(void * job1, void * job2);
 
+comparer determine_cmp(scheme_t scheme);
+
 typedef struct core{
 	priqueue_t q;
-	int core_id;
+	int id;
 	scheme_t scheme;
 	bool idle;
 } core;
@@ -34,7 +36,7 @@ typedef struct _job_t{
 	int remaining_time;
 } job_t;
 
-core cores[1];
+core* cores;
 int NUM_CORES = 0;
 bool preemptive;
 int current_time = 0;
@@ -58,14 +60,13 @@ int totalRespTime = 0;
 */
 void scheduler_start_up(int num_cores, scheme_t scheme)
 {
-	free(cores);
-	cores = core[num_cores];
+	*cores = core[num_cores];
 
 	for(int i = 0; i < num_cores; i++) {
 		cores[i].id = i;
 		cores[i].scheme = scheme;
 		cores[i].idle = true;
-		priqueue_init(&cores[i].q, determine_cmp(scheme))
+		priqueue_init(&cores[i].q, determine_cmp(scheme));
 	}
 
 }
