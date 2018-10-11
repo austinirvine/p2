@@ -23,16 +23,15 @@ typedef struct core{
 	int core_id;
 	scheme_t scheme;
 	bool idle;
-}
+} core;
 
-typedef struct _job_t
-{
+typedef struct _job_t{
 	int job_id;
 	int arrival_time;
 	int r_time;
 	int priority;
-	int start_time = 0;
-	int remaining_time = 0;
+	int start_time;
+	int remaining_time;
 } job_t;
 
 core cores[1];
@@ -60,7 +59,7 @@ int totalRespTime = 0;
 void scheduler_start_up(int num_cores, scheme_t scheme)
 {
 	free(cores);
-	cores = core[num_cores]
+	cores = core[num_cores];
 
 	for(int i = 0; i < num_cores; i++) {
 		cores[i].id = i;
@@ -79,7 +78,7 @@ void scheduler_start_up(int num_cores, scheme_t scheme)
 comparer determine_cmp(scheme_t scheme)
 {
 	comparer cmp;
-	switch (scheme):
+	switch (scheme){
 		case FCFS:
 			cmp = &FCFS_cmp;
 			preemptive = false;
@@ -104,6 +103,7 @@ comparer determine_cmp(scheme_t scheme)
 			cmp = &PRI_cmp;
 			preemptive = true;
 			break;
+		}
 }
 
 /**
@@ -129,7 +129,7 @@ comparer determine_cmp(scheme_t scheme)
 int scheduler_new_job(int job_number, int time_a, int running_time, int priority)
 {
 	int retv = 0;
-	_job_t * new_job;
+	job_t * new_job;
 	new_job->job_id = job_number;
 	new_job->arrival_time = time_a;
 	new_job->r_time = running_time;

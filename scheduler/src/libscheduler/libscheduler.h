@@ -1,6 +1,8 @@
 /** @file libscheduler.h
  */
 
+ include "stdbool.h"
+
 #ifndef LIBSCHEDULER_H_
 #define LIBSCHEDULER_H_
 
