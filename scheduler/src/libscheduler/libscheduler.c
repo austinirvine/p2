@@ -304,19 +304,44 @@ void scheduler_show_queue()
 
 
 int FCFS_cmp(void * a, void * b){
+	int retv;
 	job_t * job_a = (job_t *)a;
 	job_t * job_b = (job_t *)b;
-	return (job_a->arrival_time < job_b->arrival_time) ? 1 : -1;
+
+	if (job_a->arrival_time < job_b->arrival_time){
+		retv = -1;
+	}else if(job_a->arrival_time == job_b->arrival_time){
+		retv = 0;
+	}else{
+		retv = 1;
+	}
+	return retv;
 }
 
 int SJF_cmp(void * a, void * b){
+	int retv;
 	job_t * job_a = (job_t *)a;
 	job_t * job_b = (job_t *)b;
-	return (job_a->running_time < job_b->running_time) ? 1 : -1;
+	if (job_a->running_time < job_b->running_time){
+		retv = -1;
+	}else if(job_a->running_time == job_b->running_time){
+		retv = 0;
+	}else{
+		retv = 1;
+	}
+	return retv;
 }
 
 int PRI_cmp(void * a, void * b){
+	int retv;
 	job_t * job_a = (job_t *)a;
 	job_t * job_b = (job_t *)b;
-	return (job_a->priority < job_b->priority) ? 1 : -1;
+	if (job_a->priority < job_b->priority){
+		retv = -1;
+	}else if(job_a->priority == job_b->priority){
+		retv = 0;
+	}else{
+		retv = 1;
+	}
+	return retv;
 }
