@@ -17,10 +17,10 @@
   @param comparer a function pointer that compares two elements.
   See also @ref comparer-page
  */
-void priqueue_init(priqueue_t *q, (void *)(*comparer)(const void *, const void *))
+void priqueue_init(priqueue_t *q, (void *)(*comp)(const void *, const void *))
 {
 	q->front = NULL;
-	q->cmp = comparer;
+	q->cmp = comp;
 }
 
 

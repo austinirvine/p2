@@ -131,20 +131,20 @@ comparer determine_cmp(scheme_t scheme)
 int scheduler_new_job(int job_number, int time_a, int running_time, int priority)
 {
 	int retv = 0;
-	job_t * new_job;
-	new_job->job_id = job_number;
-	new_job->arrival_time = time_a;
-	new_job->running_time = running_time;
-	new_job->remaining_time = running_time;
-	new_job->priority = priority;
-	new_job->start_time = -1;
+	job_t new_job;
+	new_job.job_id = job_number;
+	new_job.arrival_time = time_a;
+	new_job.running_time = running_time;
+	new_job.remaining_time = running_time;
+	new_job.priority = priority;
+	new_job.start_time = -1;
 
 	totalWaitTime += time_a;
 
 	//check cores and store
 	for (int i = 0; i < NUM_CORES; i++) {
 		if(cores[i].idle) {
-	    priqueue_offer(&cores[i].q, new_job);
+	    priqueue_offer(&cores[i].q, &new_job);
 			retv = -1;
 			break;
 		}
