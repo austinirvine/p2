@@ -60,7 +60,7 @@ int totalRespTime = 0;
 */
 void scheduler_start_up(int num_cores, scheme_t scheme)
 {
-	*cores = core[num_cores];
+	cores = malloc(sizeof(core) * num_cores);
 
 	for(int i = 0; i < num_cores; i++) {
 		cores[i].id = i;
