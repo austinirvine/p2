@@ -205,20 +205,24 @@ int scheduler_job_finished(int core_id, int job_number, int time_e)
  */
 int scheduler_quantum_expired(int core_id, int time_c)
 {
-	job_t * job = (job_t *)priqueue_offer(&cores[core_id].q, priqueue_poll(&cores[core_id].q));
+	// get the preempted job
+	job_t * job = priqueue_poll(&cores[core_id].q);
+	// set the jobs remaining time
 	job->remaining_time -= job->start_time;
+	// get job id
+	priqueue_offer(&cores[core_id].q, job);
 
 	// Check to see if the next job exists
 	if (priqueue_peek(&cores[core_id].q) == NULL) {
 		return -1;
 	}
 
-	job_t * new_job = priqueue_peek(&cores[core_id].q);
+	job_t * new_job = (job_t *)priqueue_peek(&cores[core_id].q);
 	// If the job doesn't have a start time, give it one
 	if (new_job->start_time == -1){
 		new_job->start_time = time_c;
 	}
-	return (priqueue_peek(&cores[core_id].q == NULL)) ? -1 : ((job_t *)priqueue_peek(&cores[core_id].q))->job_id;
+	return new_job->job_id;
 }
 
 
@@ -273,7 +277,7 @@ float scheduler_average_response_time()
 void scheduler_clean_up()
 {
 	for (int i = 0; i < NUM_CORES; i ++){
-		priqueue_destroy(cores[i].q);
+		priqueue_destroy(&cores[i].q);
 	}
 	free(cores);
 }
