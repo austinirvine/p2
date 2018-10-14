@@ -30,7 +30,7 @@ typedef struct core{
 typedef struct _job_t{
 	int job_id;
 	int arrival_time;
-	int r_time;
+	int running_time;
 	int priority;
 	int start_time;
 	int remaining_time;
@@ -174,7 +174,7 @@ int scheduler_job_finished(int core_id, int job_number, int time_e)
 	job_t * t_job = priqueue_poll(&cores[core_id].q);
 	numJobs += 1;
 	totalWaitTime += time_e - (t_job->running_time - t_job->arrival_time);
-	totalRespTime += t_job->start_time - t_job->arrival_time
+	totalRespTime += t_job->start_time - t_job->arrival_time;
 	totalTurnTime += time_e - t_job->arrival_time;
 
 	if (priqueue_peek(&cores[core_id].q) == NULL) {
@@ -186,7 +186,7 @@ int scheduler_job_finished(int core_id, int job_number, int time_e)
 	if (new_job->start_time == -1){
 		new_job->start_time = time_e;
 	}
-	return priqueue_peek(&cores[core_id].q).job_id;
+	return priqueue_peek(&cores[core_id].q)->job_id;
 }
 
 
@@ -205,7 +205,7 @@ int scheduler_job_finished(int core_id, int job_number, int time_e)
  */
 int scheduler_quantum_expired(int core_id, int time_c)
 {
-	job_t * job = priqueue_offer(&cores[core_id].q, priqueue_poll(&cores[core_id].q));
+	job_t * job = (job_t *)priqueue_offer(&cores[core_id].q, priqueue_poll(&cores[core_id].q));
 	job->remaining_time -= job->start_time;
 
 	// Check to see if the next job exists
@@ -216,9 +216,9 @@ int scheduler_quantum_expired(int core_id, int time_c)
 	job_t * new_job = priqueue_peek(&cores[core_id].q);
 	// If the job doesn't have a start time, give it one
 	if (new_job->start_time == -1){
-		new_job->start_time = time_e;
+		new_job->start_time = time_c;
 	}
-	return (priqueue_peek(&cores[core_id].q == NULL)) ? -1 : priqueue_peek(&cores[core_id].q).job_id;
+	return (priqueue_peek(&cores[core_id].q == NULL)) ? -1 : priqueue_peek(&cores[core_id].q)->job_id;
 }
 
 
