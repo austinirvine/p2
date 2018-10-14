@@ -50,10 +50,10 @@ int priqueue_offer(priqueue_t *q, void *ptr)
 				// If its the first node, we need a special case
 				if (cur_node == q->front){
 					q->front = &a;
-					a.next = cur_node;
+					a.next = (void *)cur_node;
 				} else {
-					pre_node->next = &a;
-					a.next = cur_node;
+					pre_node->next = (void *)&a;
+					a.next = (void *)cur_node;
 				}
 				break;
 			}
@@ -64,7 +64,7 @@ int priqueue_offer(priqueue_t *q, void *ptr)
 		}
 		// cmp never returned a, so were at the end of the queue and need to have a special case
 		if (cur_node == NULL){
-			pre_node->next = &a;
+			pre_node->next = (void *)&a;
 		}
 	}
 	return retv;
@@ -105,7 +105,7 @@ void *priqueue_poll(priqueue_t *q)
 		retv = NULL;
 	} else {
 		retv = q->front;
-		q->front = retv->next;
+		q->front = (node *)retv->next;
 		retv->next = NULL;
 	}
 	return (retv == NULL)? NULL : retv->data;
@@ -130,7 +130,7 @@ void *priqueue_at(priqueue_t *q, int index)
 		node * n = q->front;
 		int i = 0;
 		while(i != index) {
-			n = n->next;
+			n = (node *)n->next;
 			i += 1;
 		}
 		retv = n;
@@ -164,11 +164,11 @@ int priqueue_remove(priqueue_t *q, void *ptr)
 				pre_node->next = cur_node->next;
 				cur_node->next = NULL;
 				free(cur_node);
-				cur_node = pre_node->next;
+				cur_node = (node *)pre_node->next;
 				retv += 1;
 			}
 			pre_node = cur_node;
-			cur_node = cur_node->next;
+			cur_node = (node *)cur_node->next;
 		}
 	}
 	return retv;
@@ -197,7 +197,7 @@ void *priqueue_remove_at(priqueue_t *q, int index)
 		node * pre_node = q->front;
 		for (int i = 0; i < index; i++){
 			pre_node = cur_node;
-			cur_node = cur_node->next;
+			cur_node = (node *)cur_node->next;
 		}
 		pre_node->next = cur_node->next;
 		cur_node->next = NULL;
@@ -222,7 +222,7 @@ int priqueue_size(priqueue_t *q)
 		node * cur_node = q->front;
 		retv = 1;
 		while(cur_node != NULL) {
-			cur_node = cur_node->next;
+			cur_node = (node *)cur_node->next;
 			retv += 1;
 		}
 	}
