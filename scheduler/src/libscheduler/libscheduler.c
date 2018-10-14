@@ -134,7 +134,7 @@ int scheduler_new_job(int job_number, int time_a, int running_time, int priority
 	job_t * new_job;
 	new_job->job_id = job_number;
 	new_job->arrival_time = time_a;
-	new_job->r_time = running_time;
+	new_job->running_time = running_time;
 	new_job->remaining_time = running_time;
 	new_job->priority = priority;
 	new_job->start_time = -1;
@@ -186,7 +186,7 @@ int scheduler_job_finished(int core_id, int job_number, int time_e)
 	if (new_job->start_time == -1){
 		new_job->start_time = time_e;
 	}
-	return priqueue_peek(&cores[core_id].q)->job_id;
+	return ((job_t *)priqueue_peek(&cores[core_id].q))->job_id;
 }
 
 
@@ -218,7 +218,7 @@ int scheduler_quantum_expired(int core_id, int time_c)
 	if (new_job->start_time == -1){
 		new_job->start_time = time_c;
 	}
-	return (priqueue_peek(&cores[core_id].q == NULL)) ? -1 : priqueue_peek(&cores[core_id].q)->job_id;
+	return (priqueue_peek(&cores[core_id].q == NULL)) ? -1 : ((job_t *)priqueue_peek(&cores[core_id].q))->job_id;
 }
 
 
@@ -308,7 +308,7 @@ void * FCFS_cmp(void * a, void * b){
 void * SJF_cmp(void * a, void * b){
 	job_t * job_a = (job_t *)a;
 	job_t * job_b = (job_t *)b;
-	return (job_a->r_time < job_b->r_time) ? a : b;
+	return (job_a->running_time < job_b->running_time) ? a : b;
 }
 
 void * PRI_cmp(void * a, void * b){
