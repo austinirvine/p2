@@ -221,7 +221,7 @@ int priqueue_size(priqueue_t *q)
 	} else {
 		node * cur_node = q->front;
 		retv = 1;
-		while(cur_node->next != NULL) {
+		while(cur_node != NULL) {
 			cur_node = cur_node->next;
 			retv += 1;
 		}
