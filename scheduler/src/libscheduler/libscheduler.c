@@ -81,27 +81,27 @@ comparer determine_cmp(scheme_t scheme)
 	comparer cmp;
 	switch (scheme){
 		case FCFS:
-			cmp = &FCFS_cmp;
+			cmp = (comparer)&FCFS_cmp;
 			preemptive = false;
 			break;
 		case RR:
-			cmp = &FCFS_cmp;
+			cmp = (comparer)&FCFS_cmp;
 			preemptive = true;
 			break;
 		case SJF:
-			cmp = &SJF_cmp;
+			cmp = (comparer)&SJF_cmp;
 			preemptive = false;
 			break;
 		case PSJF:
-			cmp = &SJF_cmp;
+			cmp = (comparer)&SJF_cmp;
 			preemptive = true;
 			break;
 		case PRI:
-			cmp = &PRI_cmp;
+			cmp = (comparer)&PRI_cmp;
 			preemptive = false;
 			break;
 		case PPRI:
-			cmp = &PRI_cmp;
+			cmp = (comparer)&PRI_cmp;
 			preemptive = true;
 			break;
 		}
