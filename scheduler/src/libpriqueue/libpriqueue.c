@@ -17,7 +17,7 @@
   @param comparer a function pointer that compares two elements.
   See also @ref comparer-page
  */
-void priqueue_init(priqueue_t *q, (void *)(*comp)(const void *, const void *))
+void priqueue_init(priqueue_t *q, int(*comp)(const void *, const void *))
 {
 	q->front = NULL;
 	q->cmp = comp;
@@ -33,27 +33,27 @@ void priqueue_init(priqueue_t *q, (void *)(*comp)(const void *, const void *))
  */
 int priqueue_offer(priqueue_t *q, void *ptr)
 {
-	node * a;
-	a->data = ptr;
-	a->next = NULL;
+	node a;
+	a.data = ptr;
+	a.next = NULL;
 	int retv = 0;
 	// if its the first job, make it front
 	if (q->front == NULL){
-		q->front = a;
+		q->front = &a;
 	} else {
 		retv = 1;
 		node * cur_node = (node *)q->front;
 		node * pre_node = (node *)q->front;
 		while(cur_node != NULL) {
 			// If we get back the first point, we know that a needs to be before cur_node
-			if((q->cmp)(a->data, cur_node->data) == a->data){
+			if((q->cmp)(a.data, cur_node->data) == 1){
 				// If its the first node, we need a special case
 				if (cur_node == q->front){
-					q->front = a;
-					a->next = cur_node;
+					q->front = &a;
+					a.next = cur_node;
 				} else {
-					pre_node->next = a;
-					a->next = cur_node;
+					pre_node->next = &a;
+					a.next = cur_node;
 				}
 				break;
 			}
@@ -64,7 +64,7 @@ int priqueue_offer(priqueue_t *q, void *ptr)
 		}
 		// cmp never returned a, so were at the end of the queue and need to have a special case
 		if (cur_node == NULL){
-			pre_node->next = a;
+			pre_node->next = &a;
 		}
 	}
 	return retv;
@@ -150,7 +150,7 @@ void *priqueue_at(priqueue_t *q, int index)
  */
 int priqueue_remove(priqueue_t *q, void *ptr)
 {
-	int retv;
+	int retv = 0;
 	if(q->front == NULL)
 	{
 		retv = 0;
@@ -186,12 +186,12 @@ int priqueue_remove(priqueue_t *q, void *ptr)
  */
 void *priqueue_remove_at(priqueue_t *q, int index)
 {
-	node * retv;
+	node retv;
 	if(q->front == NULL || index > priqueue_size(q))
 	{
-		retv = NULL;
+		retv.data = NULL;
 	} else if (q->front->next == NULL && index == 0){
-		retv = q->front;
+		retv = *q->front;
 	} else {
 		node * cur_node = q->front;
 		node * pre_node = q->front;
@@ -201,9 +201,9 @@ void *priqueue_remove_at(priqueue_t *q, int index)
 		}
 		pre_node->next = cur_node->next;
 		cur_node->next = NULL;
-		free(cur_node);
+		retv = *cur_node;
 	}
-	return retv;
+	return retv.data;
 }
 
 
@@ -215,7 +215,7 @@ void *priqueue_remove_at(priqueue_t *q, int index)
  */
 int priqueue_size(priqueue_t *q)
 {
-	int retv;
+	int retv = 0;
 	if(q->front == NULL) {
 		retv = 0;
 	} else {

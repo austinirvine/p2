@@ -14,9 +14,9 @@
 
   You may need to define some global variables or a struct to store your job queue elements.
 */
-void * FCFS_cmp(void * job1, void * job2);
-void * SJF_cmp(void * job1, void * job2);
-void * PRI_cmp(void * job1, void * job2);
+int FCFS_cmp(void * job1, void * job2);
+int SJF_cmp(void * job1, void * job2);
+int PRI_cmp(void * job1, void * job2);
 
 comparer determine_cmp(scheme_t scheme);
 
@@ -303,20 +303,20 @@ void scheduler_show_queue()
 }
 
 
-void * FCFS_cmp(void * a, void * b){
+int FCFS_cmp(void * a, void * b){
 	job_t * job_a = (job_t *)a;
 	job_t * job_b = (job_t *)b;
-	return (job_a->arrival_time < job_b->arrival_time) ? a : b;
+	return (job_a->arrival_time < job_b->arrival_time) ? 1 : -1;
 }
 
-void * SJF_cmp(void * a, void * b){
+int SJF_cmp(void * a, void * b){
 	job_t * job_a = (job_t *)a;
 	job_t * job_b = (job_t *)b;
-	return (job_a->running_time < job_b->running_time) ? a : b;
+	return (job_a->running_time < job_b->running_time) ? 1 : -1;
 }
 
-void * PRI_cmp(void * a, void * b){
+int PRI_cmp(void * a, void * b){
 	job_t * job_a = (job_t *)a;
 	job_t * job_b = (job_t *)b;
-	return (job_a->priority < job_b->priority) ? a : b;
+	return (job_a->priority < job_b->priority) ? 1 : -1;
 }

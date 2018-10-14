@@ -7,7 +7,7 @@
 /**
   Priqueue Data Structure
 */
-typedef void* (*comparer)(const void *a, const void *b);
+typedef int (*comparer)(const void *a, const void *b);
 
 typedef struct node {
   void * data;
@@ -21,7 +21,7 @@ typedef struct _priqueue_t
 } priqueue_t;
 
 
-void   priqueue_init     (priqueue_t *q, void* (*comparer)(const void *, const void *));
+void   priqueue_init     (priqueue_t *q, int (*comp)(const void *, const void *));
 
 int    priqueue_offer    (priqueue_t *q, void *ptr);
 void * priqueue_peek     (priqueue_t *q);
