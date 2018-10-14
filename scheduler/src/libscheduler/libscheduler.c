@@ -105,6 +105,7 @@ comparer determine_cmp(scheme_t scheme)
 			preemptive = true;
 			break;
 		}
+		return cmp;
 }
 
 /**
@@ -143,11 +144,11 @@ int scheduler_new_job(int job_number, int time_a, int running_time, int priority
 	//check cores and store
 	for (int i = 0; i < NUM_CORES; i++) {
 		if(cores[i].idle) {
-	    priqueue_offer(cores[i].q, new_job);
+	    priqueue_offer(&cores[i].q, new_job);
 			retv = -1;
 			break;
 		}
-		retv = (priqueue_size(cores[retv].q) < priqueue_size(cores[i].q)) ? retv : i;
+		retv = (priqueue_size(&cores[retv].q) < priqueue_size(&cores[i].q)) ? retv : i;
 	}
 
 	return retv;
@@ -170,22 +171,22 @@ int scheduler_new_job(int job_number, int time_a, int running_time, int priority
  */
 int scheduler_job_finished(int core_id, int job_number, int time_e)
 {
-	job_t * t_job = priqueue_poll(cores[core_id].q);
+	job_t * t_job = priqueue_poll(&cores[core_id].q);
 	numJobs += 1;
 	totalWaitTime += time_e - (t_job->running_time - t_job->arrival_time);
 	totalRespTime += t_job->start_time - t_job->arrival_time
 	totalTurnTime += time_e - t_job->arrival_time;
 
-	if (priqueue_peek(cores[core_id].q) == NULL) {
+	if (priqueue_peek(&cores[core_id].q) == NULL) {
 		return -1;
 	}
 
-	job_t * new_job = priqueue_peek(cores[core_id].q);
+	job_t * new_job = priqueue_peek(&cores[core_id].q);
 	// If the job doesn't have a start time, give it one
 	if (new_job->start_time == -1){
 		new_job->start_time = time_e;
 	}
-	return priqueue_peek(cores[core_id].q).job_id;
+	return priqueue_peek(&cores[core_id].q).job_id;
 }
 
 
@@ -204,20 +205,20 @@ int scheduler_job_finished(int core_id, int job_number, int time_e)
  */
 int scheduler_quantum_expired(int core_id, int time_c)
 {
-	job_t * job = priqueue_offer(cores[core_id].q, priqueue_poll(cores[core_id].q));
+	job_t * job = priqueue_offer(&cores[core_id].q, priqueue_poll(&cores[core_id].q));
 	job->remaining_time -= job->start_time;
 
 	// Check to see if the next job exists
-	if (priqueue_peek(cores[core_id].q) == NULL) {
+	if (priqueue_peek(&cores[core_id].q) == NULL) {
 		return -1;
 	}
 
-	job_t * new_job = priqueue_peek(cores[core_id].q);
+	job_t * new_job = priqueue_peek(&cores[core_id].q);
 	// If the job doesn't have a start time, give it one
 	if (new_job->start_time == -1){
 		new_job->start_time = time_e;
 	}
-	return (priqueue_peek(cores[core_id].q == NULL)) ? -1 : priqueue_peek(cores[core_id].q).job_id;
+	return (priqueue_peek(&cores[core_id].q == NULL)) ? -1 : priqueue_peek(&cores[core_id].q).job_id;
 }
 
 
