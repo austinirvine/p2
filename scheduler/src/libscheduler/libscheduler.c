@@ -130,13 +130,13 @@ comparer determine_cmp(scheme_t scheme)
  */
 int scheduler_new_job(int job_number, int time_a, int running_time, int priority)
 {
-	job_t new_job;
-	new_job.job_id = job_number;
-	new_job.arrival_time = time_a;
-	new_job.running_time = running_time;
-	new_job.remaining_time = running_time;
-	new_job.priority = priority;
-	new_job.start_time = -1;
+	job_t * new_job = malloc(sizeof(job_t));
+	new_job->job_id = job_number;
+	new_job->arrival_time = time_a;
+	new_job->running_time = running_time;
+	new_job->remaining_time = running_time;
+	new_job->priority = priority;
+	new_job->start_time = -1;
 
 	totalWaitTime += time_a;
 
@@ -144,8 +144,8 @@ int scheduler_new_job(int job_number, int time_a, int running_time, int priority
 	for (int i = 0; i < NUM_CORES; i++) {
 		// If theres an idle queue add it there and return that core id
 		if(cores[i].idle) {
-			new_job.start_time = time_a;
-			cores[i].running_job = &new_job;
+			new_job->start_time = time_a;
+			cores[i].running_job = new_job;
 			cores[i].idle = false;
 			return i;
 		}
@@ -170,11 +170,12 @@ int scheduler_new_job(int job_number, int time_a, int running_time, int priority
 		}
 
 		priqueue_offer(&wait_queue, &temp_job);
-		cores[core_to_assign].running_job = &new_job;
+		cores[core_to_assign].running_job->start_time = time_a;
+		cores[core_to_assign].running_job = new_job;
 		return core_to_assign;
 	}
 	// if neither of the other two conditions met, add it to a global queue and return -1
-	priqueue_offer(&wait_queue, &new_job);
+	priqueue_offer(&wait_queue, new_job);
 	return -1;
 }
 
@@ -201,7 +202,10 @@ int scheduler_job_finished(int core_id, int job_number, int time_e)
 	totalWaitTime += (time_e - (t_job->arrival_time - t_job->running_time));
 	totalRespTime += t_job->start_time - t_job->arrival_time;
 	totalTurnTime += time_e - t_job->arrival_time;
-
+	printf("totalWaitTime: %d\n", totalWaitTime);
+	printf("totalRespTime: %d\n", totalRespTime);
+	printf("totalTurnTime: %d\n", totalTurnTime);
+	free(t_job);
 	if (priqueue_peek(&wait_queue) == NULL) {
 		cores[core_id].idle = true;
 		return -1;
@@ -212,6 +216,7 @@ int scheduler_job_finished(int core_id, int job_number, int time_e)
 	if (new_job->start_time == -1){
 		new_job->start_time = time_e;
 	}
+	printf("NEW JOB ID : %d\n", new_job->job_id);
 	return new_job->job_id;
 }
 
@@ -263,6 +268,7 @@ int scheduler_quantum_expired(int core_id, int time_c)
 float scheduler_average_waiting_time()
 {
 	float retv = totalRespTime / numJobs;
+	printf("AV WAIT TIME: %d\n", retv);
 	return retv;
 }
 
@@ -277,6 +283,7 @@ float scheduler_average_waiting_time()
 float scheduler_average_turnaround_time()
 {
 	float retv = (totalRespTime - totalWaitTime) / numJobs;
+	printf("AV TURN TIME: %d\n", retv);
 	return retv;
 }
 
@@ -291,6 +298,7 @@ float scheduler_average_turnaround_time()
 float scheduler_average_response_time()
 {
 	float retv = totalRespTime / numJobs;
+	printf("AV RESP TIME: %d\n", retv);
 	return retv;
 }
 
@@ -328,13 +336,21 @@ void scheduler_clean_up()
 void scheduler_show_queue()
 {
 	printf("RUNNING JOBS:\n");
+	job_t * print_job;
 	for (int i = 0; i < NUM_CORES; i++){
-		printf("Core #%d: job_id: %d  job_priority: %d\n", i, cores[i].running_job->job_id, cores[i].running_job->priority);
+		print_job = cores[i].running_job;
+		if (cores[i].idle){
+			printf("CORE IS IDLE");
+		}
+		else{
+			printf("Core #%d: job_id: %d  job_priority: %d\n", i, print_job->job_id, print_job->priority);
+		}
 	}
 
 	printf("\nJOBS IN QUEUE:\n");
 	for (int i = 0; i < priqueue_size(&wait_queue); i++){
-		printf("job_id: %d   job_priority: %d\n", ((job_t *)(priqueue_at(&wait_queue, i)))->job_id, ((job_t *)(priqueue_at(&wait_queue, i)))->priority);
+		print_job = (job_t *)(priqueue_at(&wait_queue, i));
+		printf("job_id: %d   job_priority: %d\n", print_job->job_id, print_job->priority);
 	}
 }
 
