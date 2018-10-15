@@ -18,6 +18,7 @@ typedef struct _priqueue_t
 {
   node * front;
   comparer cmp;
+  int size;
 } priqueue_t;
 
 
