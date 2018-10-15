@@ -108,7 +108,7 @@ void *priqueue_poll(priqueue_t *q)
 	} else {
 		retv = q->front;
 		q->front = (node *)retv->next;
-		retv->next = NULL;
+		//retv->next = NULL;
 		q->size -= 1;
 	}
 	return (retv == NULL)? NULL : retv->data;
