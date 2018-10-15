@@ -20,14 +20,7 @@ int PRI_cmp(void * job1, void * job2);
 
 comparer determine_cmp(scheme_t scheme);
 
-typedef struct core{
-	priqueue_t q;
-	int id;
-	scheme_t scheme;
-	bool idle;
-} core;
-
-typedef struct _job_t{
+typedef struct job_t{
 	int job_id;
 	int arrival_time;
 	int running_time;
@@ -36,7 +29,14 @@ typedef struct _job_t{
 	int remaining_time;
 } job_t;
 
+typedef struct core{
+	int id;
+	bool idle;
+	job_t * running_job;
+} core;
+
 core* cores;
+priqueue_t wait_queue;
 int NUM_CORES = 0;
 bool preemptive;
 int current_time = 0;
@@ -61,16 +61,14 @@ int totalRespTime = 0;
 void scheduler_start_up(int num_cores, scheme_t scheme)
 {
 	cores = malloc(sizeof(core) * num_cores);
-
+	priqueue_init(&wait_queue, determine_cmp(scheme));
 	NUM_CORES = num_cores;
 
 	for(int i = 0; i < num_cores; i++) {
 		cores[i].id = i;
-		cores[i].scheme = scheme;
 		cores[i].idle = true;
-		priqueue_init(&cores[i].q, determine_cmp(scheme));
+		cores[i].running_job = NULL;
 	}
-
 }
 
 /**
@@ -132,7 +130,6 @@ comparer determine_cmp(scheme_t scheme)
  */
 int scheduler_new_job(int job_number, int time_a, int running_time, int priority)
 {
-	int retv = 0;
 	job_t new_job;
 	new_job.job_id = job_number;
 	new_job.arrival_time = time_a;
@@ -145,16 +142,40 @@ int scheduler_new_job(int job_number, int time_a, int running_time, int priority
 
 	//check cores and store
 	for (int i = 0; i < NUM_CORES; i++) {
+		// If theres an idle queue add it there and return that core id
 		if(cores[i].idle) {
-	    priqueue_offer(&cores[i].q, &new_job);
 			new_job.start_time = time_a;
-			retv = -1;
-			break;
+			cores[i].running_job = &new_job;
+			cores[i].idle = false;
+			return i;
 		}
-		retv = (priqueue_size(&cores[retv].q) < priqueue_size(&cores[i].q)) ? retv : i;
 	}
+	// if its a preemptive scheme and need to add it to a queue, add it to the shortest queue and return
+	if (preemptive){
+		//find least preferential job
+		priqueue_t t_q;
+		int core_to_assign = -1;
+		priqueue_init(&t_q, wait_queue.cmp);
+		for (int i = 0; i < NUM_CORES; i ++){
+			priqueue_offer(&t_q, cores[i].running_job);
+		}
+		job_t * temp_job = (job_t *)priqueue_remove_at(&t_q, NUM_CORES-1);
+		priqueue_destroy(&t_q);
 
-	return retv;
+		for (int i  = 0; i < NUM_CORES; i++){
+			if (temp_job == cores[i].running_job){
+				core_to_assign = i;
+				break;
+			}
+		}
+
+		priqueue_offer(&wait_queue, &temp_job);
+		cores[core_to_assign].running_job = &new_job;
+		return core_to_assign;
+	}
+	// if neither of the other two conditions met, add it to a global queue and return -1
+	priqueue_offer(&wait_queue, &new_job);
+	return -1;
 }
 
 
@@ -174,22 +195,24 @@ int scheduler_new_job(int job_number, int time_a, int running_time, int priority
  */
 int scheduler_job_finished(int core_id, int job_number, int time_e)
 {
-	job_t * t_job = (job_t *)priqueue_poll(&cores[core_id].q);
+	//job_t * t_job = (job_t *)priqueue_poll(&cores[core_id].q);
+	job_t * t_job = cores[core_id].running_job;
 	numJobs += 1;
 	totalWaitTime += (time_e - (t_job->arrival_time - t_job->running_time));
 	totalRespTime += t_job->start_time - t_job->arrival_time;
 	totalTurnTime += time_e - t_job->arrival_time;
 
-	if (priqueue_peek(&cores[core_id].q) == NULL) {
+	if (priqueue_peek(&wait_queue) == NULL) {
+		cores[core_id].idle = true;
 		return -1;
 	}
 
-	job_t * new_job = priqueue_peek(&cores[core_id].q);
+	job_t * new_job = priqueue_peek(&wait_queue);
 	// If the job doesn't have a start time, give it one
 	if (new_job->start_time == -1){
 		new_job->start_time = time_e;
 	}
-	return ((job_t *)priqueue_peek(&cores[core_id].q))->job_id;
+	return new_job->job_id;
 }
 
 
@@ -209,18 +232,19 @@ int scheduler_job_finished(int core_id, int job_number, int time_e)
 int scheduler_quantum_expired(int core_id, int time_c)
 {
 	// get the preempted job
-	job_t * job = priqueue_poll(&cores[core_id].q);
+	job_t * job = cores[core_id].running_job;
 	// set the jobs remaining time
 	job->remaining_time -= job->start_time;
 	// get job id
-	priqueue_offer(&cores[core_id].q, job);
+	priqueue_offer(&wait_queue, job);
 
 	// Check to see if the next job exists
-	if (priqueue_peek(&cores[core_id].q) == NULL) {
+	if (priqueue_peek(&wait_queue) == NULL) {
+		cores[core_id].idle = true;
 		return -1;
 	}
 
-	job_t * new_job = (job_t *)priqueue_peek(&cores[core_id].q);
+	job_t * new_job = (job_t *)priqueue_peek(&wait_queue);
 	// If the job doesn't have a start time, give it one
 	if (new_job->start_time == -1){
 		new_job->start_time = time_c;
@@ -280,8 +304,9 @@ float scheduler_average_response_time()
 void scheduler_clean_up()
 {
 	for (int i = 0; i < NUM_CORES; i ++){
-		priqueue_destroy(&cores[i].q);
+		cores[i].running_job = NULL;
 	}
+	priqueue_destroy(&wait_queue);
 	free(cores);
 }
 
@@ -302,13 +327,14 @@ void scheduler_clean_up()
  */
 void scheduler_show_queue()
 {
-	printf("NUM_CORES:%d\n", NUM_CORES);
+	printf("RUNNING JOBS:\n");
 	for (int i = 0; i < NUM_CORES; i++){
-		printf("CORE: %d\n", i);
-		for (int j = 0; j < priqueue_size(&cores[i].q); j++){
-			job_t * job = (job_t *)priqueue_at(&cores[i].q, j);
-			printf("job_id: %d   priority: %d\n", job->job_id, job->priority);
-		}
+		printf("Core #%d: job_id: %d  job_priority: %d\n", i, cores[i].running_job->job_id, cores[i].running_job->priority);
+	}
+
+	printf("\nJOBS IN QUEUE:\n");
+	for (int i = 0; i < priqueue_size(&wait_queue); i++){
+		printf("job_id: %d   job_priority: %d\n", ((job_t *)(priqueue_at(&wait_queue, i)))->job_id, ((job_t *)(priqueue_at(&wait_queue, i)))->priority);
 	}
 }
 
