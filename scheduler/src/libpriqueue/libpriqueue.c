@@ -48,7 +48,7 @@ int priqueue_offer(priqueue_t *q, void *ptr)
 		node * cur_node = q->front;
 		node * pre_node = q->front;
 		while(cur_node != NULL) {
-			// If we get back the first point, we know that a needs to be before cur_node
+			// If we get a -1 then a is less than cur_node
 			if((q->cmp)(a->data, cur_node->data) == -1){
 				// If its the first node, we need a special case
 				if (cur_node == q->front){
