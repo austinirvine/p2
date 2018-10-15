@@ -47,8 +47,8 @@ int priqueue_offer(priqueue_t *q, void *ptr)
 		node * cur_node = q->front;
 		node * pre_node = q->front;
 		while(cur_node != NULL) {
-			// If we get a -1 then a is less than cur_node
-			if(q->cmp(new_node->data, cur_node->data) == -1){
+			// If we get a negative then new_node is less than cur_node
+			if(q->cmp(new_node->data, cur_node->data) < 0){
 				// If its the first node, we need a special case
 				if (cur_node == q->front){
 					q->front = new_node;
@@ -162,23 +162,28 @@ int priqueue_remove(priqueue_t *q, void *ptr)
 	if(q->front == NULL)
 	{
 		retv = 0;
-	} else if (q->front->next == NULL && q->front == ptr){
-		retv = 1;
-		q->size -= 1;
 	} else {
 		node * cur_node = q->front;
 		node * pre_node = q->front;
 		while (cur_node != NULL) {
 			if(cur_node->data == ptr) {
-				pre_node->next = cur_node->next;
-				free(cur_node);
-				cur_node = pre_node->next;
+				if (cur_node == q->front){
+					q->front = q->front->next;
+					free(cur_node);
+					cur_node = q->front;
+					pre_node = q->front;
+				} else {
+					pre_node->next = cur_node->next;
+					free(cur_node);
+					cur_node = NULL;
+					cur_node = pre_node->next;
+				}
 				retv += 1;
 				q->size -= 1;
 			} else {
+				pre_node = cur_node;
 				cur_node = cur_node->next;
 			}
-			pre_node = cur_node;
 		}
 	}
 	return retv;
