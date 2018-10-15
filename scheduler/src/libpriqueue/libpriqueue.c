@@ -100,18 +100,19 @@ void *priqueue_peek(priqueue_t *q)
   @return the head of this queue
   @return NULL if this queue is empty
  */
-void *priqueue_poll(priqueue_t *q)
+void * priqueue_poll(priqueue_t *q)
 {
-	node * retv;
+	node * nodev;
+	void * retv;
 	if (q->front == NULL) {
 		retv = NULL;
 	} else {
-		retv = q->front;
-		q->front = (node *)retv->next;
-		//retv->next = NULL;
+		nodev = q->front;
+		q->front = (node *)nodev->next;
 		q->size -= 1;
+		retv = (void *)nodev->data;
 	}
-	return (retv == NULL)? NULL : retv->data;
+	return retv;
 }
 
 
