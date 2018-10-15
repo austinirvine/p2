@@ -17,6 +17,7 @@
 int FCFS_cmp(void * job1, void * job2);
 int SJF_cmp(void * job1, void * job2);
 int PRI_cmp(void * job1, void * job2);
+int RR_cmp(void * job1, void * job2);
 
 comparer determine_cmp(scheme_t scheme);
 
@@ -85,7 +86,7 @@ comparer determine_cmp(scheme_t scheme)
 			preemptive = false;
 			break;
 		case RR:
-			cmp = (comparer)&FCFS_cmp;
+			cmp = (comparer)&RR_cmp;
 			preemptive = true;
 			break;
 		case SJF:
@@ -169,12 +170,13 @@ int scheduler_new_job(int job_number, int time_a, int running_time, int priority
 			}
 		}
 
-		priqueue_offer(&wait_queue, &temp_job);
+		priqueue_offer(&wait_queue, temp_job);
 		cores[core_to_assign].running_job->start_time = time_a;
 		cores[core_to_assign].running_job = new_job;
 		return core_to_assign;
 	}
 	// if neither of the other two conditions met, add it to a global queue and return -1
+
 	priqueue_offer(&wait_queue, new_job);
 	return -1;
 }
@@ -202,19 +204,23 @@ int scheduler_job_finished(int core_id, int job_number, int time_e)
 	totalWaitTime += (time_e - (t_job->arrival_time - t_job->running_time));
 	totalRespTime += t_job->start_time - t_job->arrival_time;
 	totalTurnTime += time_e - t_job->arrival_time;
+
+	// Free the job
 	free(t_job);
-	
+
 	if (priqueue_peek(&wait_queue) == NULL) {
 		cores[core_id].idle = true;
 		return -1;
 	}
 
-	job_t * new_job = priqueue_peek(&wait_queue);
+	job_t * new_job = (job_t *)priqueue_poll(&wait_queue);
 	// If the job doesn't have a start time, give it one
 	if (new_job->start_time == -1){
 		new_job->start_time = time_e;
 	}
-	printf("NEW JOB ID : %d\n", new_job->job_id);
+
+	// set the new running job
+	cores[core_id].running_job = new_job;
 	return new_job->job_id;
 }
 
@@ -240,18 +246,19 @@ int scheduler_quantum_expired(int core_id, int time_c)
 	job->remaining_time -= job->start_time;
 	// get job id
 	priqueue_offer(&wait_queue, job);
-
 	// Check to see if the next job exists
 	if (priqueue_peek(&wait_queue) == NULL) {
 		cores[core_id].idle = true;
 		return -1;
 	}
 
-	job_t * new_job = (job_t *)priqueue_peek(&wait_queue);
+	job_t * new_job = (job_t *)priqueue_poll(&wait_queue);
+
 	// If the job doesn't have a start time, give it one
 	if (new_job->start_time == -1){
 		new_job->start_time = time_c;
 	}
+	cores[core_id].running_job = new_job;
 	return new_job->job_id;
 }
 
@@ -343,6 +350,9 @@ void scheduler_show_queue()
 	}
 
 	printf("\nJOBS IN QUEUE:\n");
+	if (priqueue_size(&wait_queue) <= 0){
+		printf("NO JOBS IN QUEUE\n");
+	}
 	for (int i = 0; i < priqueue_size(&wait_queue); i++){
 		print_job = (job_t *)(priqueue_at(&wait_queue, i));
 		printf("job_id: %d   job_priority: %d\n", print_job->job_id, print_job->priority);
@@ -391,6 +401,10 @@ int PRI_cmp(void * a, void * b){
 		retv =  1;
 	}
 	return retv;
+}
+
+int RR_cmp(void * a, void * b){
+	return 1;
 }
 
 void increment_timer(int time_c) {
