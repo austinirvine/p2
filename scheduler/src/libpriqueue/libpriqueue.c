@@ -172,15 +172,15 @@ int priqueue_remove(priqueue_t *q, void *ptr)
 		while (cur_node != NULL) {
 			if(cur_node->data == ptr) {
 				pre_node->next = cur_node->next;
-				cur_node->next = NULL;
 				free(cur_node);
-				cur_node = (node *)pre_node->next;
+				cur_node = pre_node->next;
 				retv += 1;
+				q->size -= 1;
+			} else {
+				cur_node = cur_node->next;
 			}
 			pre_node = cur_node;
-			cur_node = (node *)cur_node->next;
 		}
-		q->size -= 1;
 	}
 	return retv;
 }
