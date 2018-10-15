@@ -145,6 +145,7 @@ int scheduler_new_job(int job_number, int time_a, int running_time, int priority
 	for (int i = 0; i < NUM_CORES; i++) {
 		if(cores[i].idle) {
 	    priqueue_offer(&cores[i].q, &new_job);
+			new_job.start_time = time_a;
 			retv = -1;
 			break;
 		}
@@ -173,7 +174,7 @@ int scheduler_job_finished(int core_id, int job_number, int time_e)
 {
 	job_t * t_job = priqueue_poll(&cores[core_id].q);
 	numJobs += 1;
-	totalWaitTime += time_e - (t_job->running_time - t_job->arrival_time);
+	totalWaitTime += (time_e - (t_job->arrival_time - t_job->running_time));
 	totalRespTime += t_job->start_time - t_job->arrival_time;
 	totalTurnTime += time_e - t_job->arrival_time;
 
@@ -299,7 +300,12 @@ void scheduler_clean_up()
  */
 void scheduler_show_queue()
 {
-
+	for (int i = 0; i < NUM_CORES; i++){
+		for (int j = 0; j < priqueue_size(&cores[i].q); j++){
+			job_t * job = (job_t *)priqueue_at(&cores[i].q, j);
+			printf("job_id: %d   priority: %d\n", job->job_id, job->priority);
+		}
+	}
 }
 
 
@@ -339,9 +345,13 @@ int PRI_cmp(void * a, void * b){
 	if (job_a->priority < job_b->priority){
 		retv = -1;
 	}else if(job_a->priority == job_b->priority){
-		retv = 0;
+		retv =  0;
 	}else{
-		retv = 1;
+		retv =  1;
 	}
 	return retv;
+}
+
+void increment_timer(int time_c) {
+	time_c++;
 }
