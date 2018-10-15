@@ -110,7 +110,6 @@ void * priqueue_poll(priqueue_t *q)
 		nodev = q->front;
 		q->front = (node *)q->front->next;
 		retv = (void *)nodev->data;
-		free(nodev);
 		nodev = NULL;
 		q->size -= 1;
 	}
