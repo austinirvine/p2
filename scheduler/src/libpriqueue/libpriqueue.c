@@ -53,10 +53,10 @@ int priqueue_offer(priqueue_t *q, void *ptr)
 				// If its the first node, we need a special case
 				if (cur_node == q->front){
 					q->front = a;
-					a->next = (void *)cur_node;
+					a->next = cur_node;
 				} else {
-					pre_node->next = (void *)a;
-					a->next = (void *)cur_node;
+					pre_node->next = a;
+					a->next = cur_node;
 				}
 				break;
 			}
@@ -67,7 +67,7 @@ int priqueue_offer(priqueue_t *q, void *ptr)
 		}
 		// cmp never returned a, so were at the end of the queue and need to have a special case
 		if (cur_node == NULL){
-			pre_node->next = (void *)a;
+			pre_node->next = a;
 		}
 	}
 	q->size += 1;
