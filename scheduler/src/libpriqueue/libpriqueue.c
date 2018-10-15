@@ -43,8 +43,8 @@ int priqueue_offer(priqueue_t *q, void *ptr)
 		q->front = &a;
 	} else {
 		retv = 1;
-		node * cur_node = (node *)q->front;
-		node * pre_node = (node *)q->front;
+		node * cur_node = q->front;
+		node * pre_node = q->front;
 		while(cur_node != NULL) {
 			// If we get back the first point, we know that a needs to be before cur_node
 			if((q->cmp)(a.data, cur_node->data) == -1){
@@ -108,8 +108,8 @@ void * priqueue_poll(priqueue_t *q)
 		return NULL;
 	} else {
 		nodev = q->front;
-		q->front = (node *)q->front->next;
-		retv = (void *)nodev->data;
+		q->front = nodev->next;
+		retv = nodev->data;
 		nodev = NULL;
 		q->size -= 1;
 	}
