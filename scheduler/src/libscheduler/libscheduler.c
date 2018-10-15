@@ -62,6 +62,8 @@ void scheduler_start_up(int num_cores, scheme_t scheme)
 {
 	cores = malloc(sizeof(core) * num_cores);
 
+	NUM_CORES = num_cores;
+
 	for(int i = 0; i < num_cores; i++) {
 		cores[i].id = i;
 		cores[i].scheme = scheme;
@@ -172,7 +174,7 @@ int scheduler_new_job(int job_number, int time_a, int running_time, int priority
  */
 int scheduler_job_finished(int core_id, int job_number, int time_e)
 {
-	job_t * t_job = priqueue_poll(&cores[core_id].q);
+	job_t * t_job = (job_t *)priqueue_poll(&cores[core_id].q);
 	numJobs += 1;
 	totalWaitTime += (time_e - (t_job->arrival_time - t_job->running_time));
 	totalRespTime += t_job->start_time - t_job->arrival_time;
@@ -300,7 +302,9 @@ void scheduler_clean_up()
  */
 void scheduler_show_queue()
 {
+	printf("NUM_CORES:%d\n", NUM_CORES);
 	for (int i = 0; i < NUM_CORES; i++){
+		printf("CORE: %d\n", i);
 		for (int j = 0; j < priqueue_size(&cores[i].q); j++){
 			job_t * job = (job_t *)priqueue_at(&cores[i].q, j);
 			printf("job_id: %d   priority: %d\n", job->job_id, job->priority);
