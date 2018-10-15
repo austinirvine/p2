@@ -202,10 +202,8 @@ int scheduler_job_finished(int core_id, int job_number, int time_e)
 	totalWaitTime += (time_e - (t_job->arrival_time - t_job->running_time));
 	totalRespTime += t_job->start_time - t_job->arrival_time;
 	totalTurnTime += time_e - t_job->arrival_time;
-	printf("totalWaitTime: %d\n", totalWaitTime);
-	printf("totalRespTime: %d\n", totalRespTime);
-	printf("totalTurnTime: %d\n", totalTurnTime);
 	free(t_job);
+	
 	if (priqueue_peek(&wait_queue) == NULL) {
 		cores[core_id].idle = true;
 		return -1;
@@ -268,7 +266,6 @@ int scheduler_quantum_expired(int core_id, int time_c)
 float scheduler_average_waiting_time()
 {
 	float retv = totalRespTime / numJobs;
-	printf("AV WAIT TIME: %d\n", retv);
 	return retv;
 }
 
@@ -282,8 +279,7 @@ float scheduler_average_waiting_time()
  */
 float scheduler_average_turnaround_time()
 {
-	float retv = (totalRespTime - totalWaitTime) / numJobs;
-	printf("AV TURN TIME: %d\n", retv);
+	float retv = totalTurnTime / numJobs;
 	return retv;
 }
 
@@ -298,7 +294,6 @@ float scheduler_average_turnaround_time()
 float scheduler_average_response_time()
 {
 	float retv = totalRespTime / numJobs;
-	printf("AV RESP TIME: %d\n", retv);
 	return retv;
 }
 
