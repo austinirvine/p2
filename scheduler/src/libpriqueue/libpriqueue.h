@@ -11,7 +11,7 @@ typedef int (*comparer)(const void *a, const void *b);
 
 typedef struct node {
   void * data;
-  void * next;
+  struct node * next;
 } node;
 
 typedef struct _priqueue_t

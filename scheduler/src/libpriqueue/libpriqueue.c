@@ -34,27 +34,29 @@ void priqueue_init(priqueue_t *q, int(*comp)(const void *, const void *))
  */
 int priqueue_offer(priqueue_t *q, void *ptr)
 {
-	node a;
-	a.data = ptr;
-	a.next = NULL;
+	//node a;
+	node * a = (node *) malloc(sizeof(node));
+	//node_t* newNode
+	a->data = ptr;
+	a->next = NULL;
 	int retv = 0;
 	// if its the first job, make it front
 	if (q->front == NULL){
-		q->front = &a;
+		q->front = a;
 	} else {
 		retv = 1;
 		node * cur_node = q->front;
 		node * pre_node = q->front;
 		while(cur_node != NULL) {
 			// If we get back the first point, we know that a needs to be before cur_node
-			if((q->cmp)(a.data, cur_node->data) == -1){
+			if((q->cmp)(a->data, cur_node->data) == -1){
 				// If its the first node, we need a special case
 				if (cur_node == q->front){
-					q->front = &a;
-					a.next = (void *)cur_node;
+					q->front = a;
+					a->next = (void *)cur_node;
 				} else {
-					pre_node->next = (void *)&a;
-					a.next = (void *)cur_node;
+					pre_node->next = (void *)a;
+					a->next = (void *)cur_node;
 				}
 				break;
 			}
@@ -65,7 +67,7 @@ int priqueue_offer(priqueue_t *q, void *ptr)
 		}
 		// cmp never returned a, so were at the end of the queue and need to have a special case
 		if (cur_node == NULL){
-			pre_node->next = (void *)&a;
+			pre_node->next = (void *)a;
 		}
 	}
 	q->size += 1;
@@ -107,9 +109,11 @@ void * priqueue_poll(priqueue_t *q)
 	if (q->front == NULL) {
 		return NULL;
 	} else {
+		//
 		nodev = q->front;
 		q->front = nodev->next;
-		retv = nodev->data;
+		retv = (void *)nodev->data;
+		free(nodev);
 		nodev = NULL;
 		q->size -= 1;
 	}
