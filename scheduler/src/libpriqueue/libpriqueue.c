@@ -35,28 +35,27 @@ void priqueue_init(priqueue_t *q, int(*comp)(const void *, const void *))
 int priqueue_offer(priqueue_t *q, void *ptr)
 {
 	//node a;
-	node * a = (node *) malloc(sizeof(node));
+	node * new_node = (node *) malloc(sizeof(node));
 	//node_t* newNode
-	a->data = ptr;
-	a->next = NULL;
+	new_node->data = ptr;
+	new_node->next = NULL;
 	int retv = 0;
 	// if its the first job, make it front
-	if (q->front == NULL){
-		q->front = a;
+	if (q->size == 0){
+		q->front = new_node;
 	} else {
-		retv = 1;
 		node * cur_node = q->front;
 		node * pre_node = q->front;
 		while(cur_node != NULL) {
 			// If we get a -1 then a is less than cur_node
-			if((q->cmp)(a->data, cur_node->data) == -1){
+			if(q->cmp(new_node->data, cur_node->data) == -1){
 				// If its the first node, we need a special case
 				if (cur_node == q->front){
-					q->front = a;
-					a->next = cur_node;
+					q->front = new_node;
+					new_node->next = cur_node;
 				} else {
-					pre_node->next = a;
-					a->next = cur_node;
+					pre_node->next = new_node;
+					new_node->next = cur_node;
 				}
 				break;
 			}
@@ -65,9 +64,9 @@ int priqueue_offer(priqueue_t *q, void *ptr)
 			cur_node = cur_node->next;
 			retv++;
 		}
-		// cmp never returned a, so were at the end of the queue and need to have a special case
+		// cmp never returned -1, so were at the end of the queue and need to have a special case
 		if (cur_node == NULL){
-			pre_node->next = a;
+			pre_node->next = new_node;
 		}
 	}
 	q->size += 1;

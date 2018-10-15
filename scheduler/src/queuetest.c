@@ -49,7 +49,7 @@ int main()
 	priqueue_offer(&q, &values[10]);
 	priqueue_offer(&q, &values[30]);
 	priqueue_offer(&q, &values[20]);
-	printf("first ones\n");
+
 	priqueue_offer(&q2, &values[10]);
 	priqueue_offer(&q2, &values[30]);
 	priqueue_offer(&q2, &values[20]);
