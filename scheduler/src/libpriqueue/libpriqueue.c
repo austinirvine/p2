@@ -102,15 +102,17 @@ void *priqueue_peek(priqueue_t *q)
  */
 void * priqueue_poll(priqueue_t *q)
 {
-	node * nodev;
-	void * retv;
+	node * nodev = NULL;
+	void * retv = NULL;
 	if (q->front == NULL) {
-		retv = NULL;
+		return NULL;
 	} else {
 		nodev = q->front;
-		q->front = (node *)nodev->next;
-		q->size -= 1;
+		q->front = (node *)q->front->next;
 		retv = (void *)nodev->data;
+		free(nodev);
+		nodev = NULL;
+		q->size -= 1;
 	}
 	return retv;
 }
