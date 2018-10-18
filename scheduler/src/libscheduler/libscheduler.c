@@ -42,9 +42,9 @@ int NUM_CORES = 0;
 bool preemptive;
 int current_time = 0;
 int numJobs = 0;
-int totalTurnTime = 0;
-int totalWaitTime = 0;
-int totalRespTime = 0;
+float totalTurnTime = 0;
+float totalWaitTime = 0;
+float totalRespTime = 0;
 
 
 /**
@@ -272,7 +272,7 @@ int scheduler_quantum_expired(int core_id, int time_c)
  */
 float scheduler_average_waiting_time()
 {
-	float retv = totalRespTime / numJobs;
+	float retv = totalRespTime / (float)numJobs;
 	return retv;
 }
 
@@ -286,7 +286,7 @@ float scheduler_average_waiting_time()
  */
 float scheduler_average_turnaround_time()
 {
-	float retv = totalTurnTime / numJobs;
+	float retv = totalTurnTime / (float)numJobs;
 	return retv;
 }
 
@@ -300,7 +300,7 @@ float scheduler_average_turnaround_time()
  */
 float scheduler_average_response_time()
 {
-	float retv = totalRespTime / numJobs;
+	float retv = totalRespTime / (float)numJobs;
 	return retv;
 }
 
