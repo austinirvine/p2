@@ -172,8 +172,8 @@ int scheduler_new_job(int job_number, int time_a, int running_time, int priority
 		}
 
 		priqueue_offer(&wait_queue, temp_job);
-		cores[core_to_assign].running_job->start_time = time_a;
 		cores[core_to_assign].running_job = new_job;
+		cores[core_to_assign].running_job->start_time = time_a;
 		return core_to_assign;
 	}
 	// if neither of the other two conditions met, add it to a global queue and return -1
@@ -244,7 +244,7 @@ int scheduler_quantum_expired(int core_id, int time_c)
 	// get the preempted job
 	job_t * job = cores[core_id].running_job;
 	// set the jobs remaining time
-	job->remaining_time -= job->start_time;
+	job->remaining_time -= (time_c - job->start_time);
 	// get job id
 	priqueue_offer(&wait_queue, job);
 	// Check to see if the next job exists
