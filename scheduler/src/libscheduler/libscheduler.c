@@ -140,8 +140,6 @@ int scheduler_new_job(int job_number, int time_a, int running_time, int priority
 	new_job->priority = priority;
 	new_job->start_time = -1;
 
-	totalWaitTime += time_a;
-
 	//check cores and store
 	for (int i = 0; i < NUM_CORES; i++) {
 		// If theres an idle queue add it there and return that core id
@@ -163,7 +161,12 @@ int scheduler_new_job(int job_number, int time_a, int running_time, int priority
 		}
 		job_t * temp_job = (job_t *)priqueue_remove_at(&t_q, NUM_CORES-1);
 		priqueue_destroy(&t_q);
+		// end getting job
+
+		printf("Temp job remaining time before change: %f\n", temp_job->remaining_time);
+		printf("Time a : %d   temp job start time: %f\n", time_a, temp_job->start_time);
 		temp_job->remaining_time -= (time_a - temp_job->start_time);
+		printf("Temp job remaining time after change: %f\n", temp_job->remaining_time);
 		for (int i  = 0; i < NUM_CORES; i++){
 			if (temp_job == cores[i].running_job){
 				core_to_assign = i;
@@ -172,10 +175,13 @@ int scheduler_new_job(int job_number, int time_a, int running_time, int priority
 		}
 
 		//compare jobs here
+		printf("REMAING TIMES: %f,%f\n", new_job->remaining_time, temp_job->remaining_time);
 		if (wait_queue.cmp(new_job, temp_job) == -1) {
 			priqueue_offer(&wait_queue, temp_job);
+			if(new_job->start_time == -1) {
+				new_job->start_time = time_a;
+			}
 			cores[core_to_assign].running_job = new_job;
-			cores[core_to_assign].running_job->start_time = time_a;
 			return core_to_assign;
 		}
 	}
@@ -205,7 +211,7 @@ int scheduler_job_finished(int core_id, int job_number, int time_e)
 	//job_t * t_job = (job_t *)priqueue_poll(&cores[core_id].q);
 	job_t * t_job = cores[core_id].running_job;
 	numJobs += 1;
-	totalWaitTime += (time_e - (t_job->arrival_time - t_job->running_time));
+	totalWaitTime += ((time_e - t_job->running_time) - t_job->arrival_time);
 	totalRespTime += t_job->start_time - t_job->arrival_time;
 	totalTurnTime += time_e - t_job->arrival_time;
 
@@ -219,7 +225,7 @@ int scheduler_job_finished(int core_id, int job_number, int time_e)
 
 	job_t * new_job = (job_t *)priqueue_poll(&wait_queue);
 	// If the job doesn't have a start time, give it one
-	if (new_job->start_time == -1){
+	if (!preemptive || new_job->start_time == -1) { //(new_job->start_time == -1){
 		new_job->start_time = time_e;
 	}
 
@@ -276,7 +282,7 @@ int scheduler_quantum_expired(int core_id, int time_c)
  */
 float scheduler_average_waiting_time()
 {
-	float retv = (float)totalRespTime / (float)numJobs;
+	float retv = (float)totalWaitTime / (float)numJobs;
 	return retv;
 }
 
