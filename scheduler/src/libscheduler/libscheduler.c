@@ -163,7 +163,7 @@ int scheduler_new_job(int job_number, int time_a, int running_time, int priority
 		}
 		job_t * temp_job = (job_t *)priqueue_remove_at(&t_q, NUM_CORES-1);
 		priqueue_destroy(&t_q);
-		temp_job->remaining_time = temp_job->running_time - (time_a - temp_job->start_time);
+		temp_job->remaining_time -= (time_a - temp_job->start_time);
 		for (int i  = 0; i < NUM_CORES; i++){
 			if (temp_job == cores[i].running_job){
 				core_to_assign = i;
