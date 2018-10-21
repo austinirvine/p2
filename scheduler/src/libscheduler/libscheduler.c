@@ -16,6 +16,7 @@
 */
 int FCFS_cmp(void * job1, void * job2);
 int SJF_cmp(void * job1, void * job2);
+int PSJF_cmp(void * job1, void * job2);
 int PRI_cmp(void * job1, void * job2);
 int RR_cmp(void * job1, void * job2);
 
@@ -42,9 +43,9 @@ int NUM_CORES = 0;
 bool preemptive;
 int current_time = 0;
 int numJobs = 0;
-int totalTurnTime = 0;
-int totalWaitTime = 0;
-int totalRespTime = 0;
+float totalTurnTime = 0;
+float totalWaitTime = 0;
+float totalRespTime = 0;
 
 
 /**
@@ -94,7 +95,7 @@ comparer determine_cmp(scheme_t scheme)
 			preemptive = false;
 			break;
 		case PSJF:
-			cmp = (comparer)&SJF_cmp;
+			cmp = (comparer)&PSJF_cmp;
 			preemptive = true;
 			break;
 		case PRI:
@@ -162,7 +163,7 @@ int scheduler_new_job(int job_number, int time_a, int running_time, int priority
 		}
 		job_t * temp_job = (job_t *)priqueue_remove_at(&t_q, NUM_CORES-1);
 		priqueue_destroy(&t_q);
-
+		temp_job->remaining_time = temp_job->running_time - (time_a - temp_job->start_time);
 		for (int i  = 0; i < NUM_CORES; i++){
 			if (temp_job == cores[i].running_job){
 				core_to_assign = i;
@@ -272,7 +273,7 @@ int scheduler_quantum_expired(int core_id, int time_c)
  */
 float scheduler_average_waiting_time()
 {
-	float retv = totalRespTime / numJobs;
+	float retv = (float)totalRespTime / (float)numJobs;
 	return retv;
 }
 
@@ -286,7 +287,7 @@ float scheduler_average_waiting_time()
  */
 float scheduler_average_turnaround_time()
 {
-	float retv = totalTurnTime / numJobs;
+	float retv = (float)totalTurnTime / (float)numJobs;
 	return retv;
 }
 
@@ -300,7 +301,7 @@ float scheduler_average_turnaround_time()
  */
 float scheduler_average_response_time()
 {
-	float retv = totalRespTime / numJobs;
+	float retv = (float)totalRespTime / (float)numJobs;
 	return retv;
 }
 
@@ -382,6 +383,20 @@ int SJF_cmp(void * a, void * b){
 	if (job_a->running_time < job_b->running_time){
 		retv = -1;
 	}else if(job_a->running_time == job_b->running_time){
+		retv = 0;
+	}else{
+		retv = 1;
+	}
+	return retv;
+}
+
+int PSJF_cmp(void * a, void * b){
+	int retv;
+	job_t * job_a = (job_t *)a;
+	job_t * job_b = (job_t *)b;
+	if (job_a->remaining_time < job_b->remaining_time){
+		retv = -1;
+	}else if(job_a->remaining_time == job_b->remaining_time){
 		retv = 0;
 	}else{
 		retv = 1;
