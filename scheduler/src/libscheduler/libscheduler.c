@@ -24,11 +24,11 @@ comparer determine_cmp(scheme_t scheme);
 
 typedef struct job_t{
 	int job_id;
-	int arrival_time;
-	int running_time;
 	int priority;
-	int start_time;
-	int remaining_time;
+	float arrival_time;
+	float running_time;
+	float start_time;
+	float remaining_time;
 } job_t;
 
 typedef struct core{
@@ -171,10 +171,13 @@ int scheduler_new_job(int job_number, int time_a, int running_time, int priority
 			}
 		}
 
-		priqueue_offer(&wait_queue, temp_job);
-		cores[core_to_assign].running_job = new_job;
-		cores[core_to_assign].running_job->start_time = time_a;
-		return core_to_assign;
+		//compare jobs here
+		if (wait_queue.cmp(new_job, temp_job) == -1) {
+			priqueue_offer(&wait_queue, temp_job);
+			cores[core_to_assign].running_job = new_job;
+			cores[core_to_assign].running_job->start_time = time_a;
+			return core_to_assign;
+		}
 	}
 	// if neither of the other two conditions met, add it to a global queue and return -1
 
