@@ -29,6 +29,7 @@ typedef struct job_t{
 	float running_time;
 	float start_time;
 	float remaining_time;
+	float last_start_time;
 } job_t;
 
 typedef struct core{
@@ -139,12 +140,14 @@ int scheduler_new_job(int job_number, int time_a, int running_time, int priority
 	new_job->remaining_time = running_time;
 	new_job->priority = priority;
 	new_job->start_time = -1;
+	new_job->last_start_time = -1;
 
 	//check cores and store
 	for (int i = 0; i < NUM_CORES; i++) {
 		// If theres an idle queue add it there and return that core id
 		if(cores[i].idle) {
 			new_job->start_time = time_a;
+			new_job->last_start_time = time_a;
 			cores[i].running_job = new_job;
 			cores[i].idle = false;
 			return i;
@@ -153,6 +156,12 @@ int scheduler_new_job(int job_number, int time_a, int running_time, int priority
 	// if its a preemptive scheme and need to add it to a queue, add it to the shortest queue and return
 	if (preemptive){
 		//find least preferential job
+
+		// update each cores running time
+		for (int i = 0; i < NUM_CORES; i++){
+			cores[i].running_job->remaining_time = cores[i].running_job->remaining_time - (time_a - cores[i].running_job->last_start_time);
+			cores[i].running_job->last_start_time = time_a;
+		}
 		priqueue_t t_q;
 		int core_to_assign = -1;
 		priqueue_init(&t_q, wait_queue.cmp);
@@ -160,13 +169,14 @@ int scheduler_new_job(int job_number, int time_a, int running_time, int priority
 			priqueue_offer(&t_q, cores[i].running_job);
 		}
 		job_t * temp_job = (job_t *)priqueue_remove_at(&t_q, NUM_CORES-1);
+		printf("Job from back is : %d\n", temp_job->job_id);
 		priqueue_destroy(&t_q);
 		// end getting job
+		//
+		// printf("Temp job remaining time before change: %f\n", temp_job->remaining_time);
+		// printf("Time a : %d   temp job start time: %f\n", time_a, temp_job->start_time);
 
-		printf("Temp job remaining time before change: %f\n", temp_job->remaining_time);
-		printf("Time a : %d   temp job start time: %f\n", time_a, temp_job->start_time);
-		temp_job->remaining_time -= (time_a - temp_job->start_time);
-		printf("Temp job remaining time after change: %f\n", temp_job->remaining_time);
+		// printf("Temp job remaining time after change: %f\n", temp_job->remaining_time);
 		for (int i  = 0; i < NUM_CORES; i++){
 			if (temp_job == cores[i].running_job){
 				core_to_assign = i;
@@ -175,13 +185,20 @@ int scheduler_new_job(int job_number, int time_a, int running_time, int priority
 		}
 
 		//compare jobs here
-		printf("REMAING TIMES: %f,%f\n", new_job->remaining_time, temp_job->remaining_time);
+		//printf("REMAING TIMES: %f,%f\n", new_job->remaining_time, temp_job->remaining_time);
+		//temp_job->remaining_time = temp_job->remaining_time - temp_job->running_time;
+		//printf("temp job last start time: %f\n", temp_job->last_start_time);
+
+		// printf("REMAING TIMES: %f,%f\n", new_job->remaining_time, temp_job->remaining_time);
 		if (wait_queue.cmp(new_job, temp_job) == -1) {
+			temp_job->last_start_time = -1;
 			priqueue_offer(&wait_queue, temp_job);
 			if(new_job->start_time == -1) {
 				new_job->start_time = time_a;
+				new_job->last_start_time = time_a;
 			}
 			cores[core_to_assign].running_job = new_job;
+			// printf("REMAING TIMES: %f,%f\n", new_job->remaining_time, temp_job->remaining_time);
 			return core_to_assign;
 		}
 	}
@@ -225,10 +242,11 @@ int scheduler_job_finished(int core_id, int job_number, int time_e)
 
 	job_t * new_job = (job_t *)priqueue_poll(&wait_queue);
 	// If the job doesn't have a start time, give it one
-	if (!preemptive || new_job->start_time == -1) { //(new_job->start_time == -1){
+	if (new_job->start_time == -1) { //(new_job->start_time == -1){
 		new_job->start_time = time_e;
 	}
-
+	// job is starting so set its last start time to now
+	new_job->last_start_time = time_e;
 	// set the new running job
 	cores[core_id].running_job = new_job;
 	return new_job->job_id;
@@ -253,7 +271,7 @@ int scheduler_quantum_expired(int core_id, int time_c)
 	// get the preempted job
 	job_t * job = cores[core_id].running_job;
 	// set the jobs remaining time
-	job->remaining_time -= (time_c - job->start_time);
+	job->remaining_time -= (time_c - job->last_start_time);
 	// get job id
 	priqueue_offer(&wait_queue, job);
 	// Check to see if the next job exists
@@ -267,6 +285,7 @@ int scheduler_quantum_expired(int core_id, int time_c)
 	// If the job doesn't have a start time, give it one
 	if (new_job->start_time == -1){
 		new_job->start_time = time_c;
+		new_job->last_start_time = time_c;
 	}
 	cores[core_id].running_job = new_job;
 	return new_job->job_id;
@@ -355,7 +374,7 @@ void scheduler_show_queue()
 			printf("CORE IS IDLE");
 		}
 		else{
-			printf("Core #%d: job_id: %d  job_priority: %d\n", i, print_job->job_id, print_job->priority);
+			printf("Core #%d: job_id: %d  job_priority: %d   remaining_time: %f\n", i, print_job->job_id, print_job->priority, print_job->remaining_time);
 		}
 	}
 
@@ -365,7 +384,7 @@ void scheduler_show_queue()
 	}
 	for (int i = 0; i < priqueue_size(&wait_queue); i++){
 		print_job = (job_t *)(priqueue_at(&wait_queue, i));
-		printf("job_id: %d   job_priority: %d\n", print_job->job_id, print_job->priority);
+		printf("job_id: %d   job_priority: %d    remaining_time: %f\n", print_job->job_id, print_job->priority, print_job->remaining_time);
 	}
 }
 
